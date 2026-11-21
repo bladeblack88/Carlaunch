@@ -159,7 +159,7 @@ private fun DriveDeckHome() {
     var apps by remember { mutableStateOf<List<InstalledApp>>(emptyList()) }
     var selected by remember { mutableStateOf(prefs.getStringSet("selected_apps", emptySet())?.toSet() ?: emptySet()) }
     var loading by remember { mutableStateOf(true) }
-    var columns by remember { mutableIntStateOf(prefs.getInt("columns", 3).coerceIn(3, 5)) }
+    var columns by remember { mutableIntStateOf(prefs.getInt("columns", if (context.resources.configuration.screenWidthDp >= 700) 5 else 3).coerceIn(3, 5)) }
     var clock by remember { mutableStateOf(LocalDateTime.now()) }
     var weather by remember { mutableStateOf<WeatherInfo?>(null) }
     var weatherMessage by remember { mutableStateOf("Нажми обновить") }
@@ -242,7 +242,7 @@ private fun DriveDeckHome() {
     MaterialTheme(colorScheme = darkColorScheme(background = Bg, surface = Panel, primary = Accent,
         onBackground = Color.White, onSurface = Color.White)) {
         Surface(Modifier.fillMaxSize(), color = Bg) {
-            Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("DRIVEDECK", color = Accent, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
