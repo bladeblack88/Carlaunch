@@ -174,7 +174,8 @@ private fun DriveDeckHome() {
 
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
         if (grants[Manifest.permission.ACCESS_FINE_LOCATION] == true || grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
-            // Weather is refreshed by the dashboard button.
+            weatherMessage = "Разрешение получено. Загружаем погоду…"
+            weatherLoading = true
         }
         if (Build.VERSION.SDK_INT >= 31 && grants[Manifest.permission.BLUETOOTH_CONNECT] == true) {
             refreshBluetooth(context) { enabled, name -> bluetoothEnabled = enabled; bluetoothName = name }
