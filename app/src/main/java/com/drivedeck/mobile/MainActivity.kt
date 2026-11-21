@@ -296,7 +296,7 @@ private fun DriveDeckHome() {
                                 Button(onClick = { context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }, colors = ButtonDefaults.buttonColors(containerColor = Panel)) {
                                     Icon(Icons.Default.Bluetooth, null); Spacer(Modifier.width(8.dp)); Text("Настройки Bluetooth")
                                 }
-                                Button(onClick = { context.startActivity(Intent(Settings.ACTION_SET_WALLPAPER)) }, colors = ButtonDefaults.buttonColors(containerColor = Panel)) {
+                                Button(onClick = { context.startActivity(Intent(Intent.ACTION_SET_WALLPAPER)) }, colors = ButtonDefaults.buttonColors(containerColor = Panel)) {
                                     Icon(Icons.Default.Wallpaper, null); Spacer(Modifier.width(8.dp)); Text("Изменить обои")
                                 }
                             }
