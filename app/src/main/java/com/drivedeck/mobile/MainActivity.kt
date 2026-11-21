@@ -409,6 +409,7 @@ private fun DriveDeckHome() {
             }
         }
     }
+    }
 
     // Weather refresh is triggered after the permission result or by tapping the dashboard card.
     LaunchedEffect(weatherLoading) {
