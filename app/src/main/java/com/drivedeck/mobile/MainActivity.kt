@@ -333,7 +333,11 @@ private fun DriveDeckHome() {
                                 DashboardCard("ПОГОДА", weatherMessage, Icons.Default.Cloud, Modifier.weight(1f),
                                     action = { if (!weatherLoading) refreshWeather() }, actionLabel = if (weatherLoading) "Загрузка…" else "Обновить")
                                 DashboardCard("BLUETOOTH", bluetoothName, Icons.Default.Bluetooth, Modifier.weight(1f),
-                                    action = { context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) },
+                                    action = {
+                                        if (Build.VERSION.SDK_INT >= 31 && context.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                                            permissionLauncher.launch(arrayOf(Manifest.permission.BLUETOOTH_CONNECT))
+                                        } else context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                                    },
                                     actionLabel = if (bluetoothEnabled) "Управление" else "Подключить")
                             }
                             Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(22.dp)) {
