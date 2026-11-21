@@ -170,6 +170,7 @@ private fun DriveDeckHome() {
     var trackTitle by remember { mutableStateOf("Нет активного трека") }
     var trackArtist by remember { mutableStateOf("Запусти музыку в любом приложении") }
     var isPlaying by remember { mutableStateOf(false) }
+    var activeApps by remember { mutableStateOf<List<InstalledApp>>(emptyList()) }
 
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
         if (grants[Manifest.permission.ACCESS_FINE_LOCATION] == true || grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
@@ -220,6 +221,15 @@ private fun DriveDeckHome() {
         }
     }
 
+    fun launchApp(app: InstalledApp) {
+        context.packageManager.getLaunchIntentForPackage(app.packageName)?.let(context::startActivity)
+        activeApps = (listOf(app) + activeApps.filterNot { it.packageName == app.packageName }).take(12)
+    }
+    fun goBack() {
+        if (choosing) choosing = false
+        else if (tab != "Главная") tab = "Главная"
+        else activity.onBackPressedDispatcher.onBackPressed()
+    }
     fun saveSelection(next: Set<String>) {
         selected = next
         prefs.edit().putStringSet("selected_apps", next).apply()
@@ -242,7 +252,17 @@ private fun DriveDeckHome() {
     MaterialTheme(colorScheme = darkColorScheme(background = Bg, surface = Panel, primary = Accent,
         onBackground = Color.White, onSurface = Color.White)) {
         Surface(Modifier.fillMaxSize(), color = Bg) {
-            Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+                NavigationRail(containerColor = Panel, contentColor = Muted, header = {
+                    Icon(Icons.Default.DirectionsCar, contentDescription = "DriveDeck", tint = Accent, modifier = Modifier.padding(vertical = 12.dp).size(26.dp))
+                }) {
+                    NavigationRailItem(selected = false, onClick = { goBack() }, icon = { Icon(Icons.Default.ArrowBack, "Назад") }, label = { Text("Назад", fontSize = 9.sp) })
+                    NavigationRailItem(selected = tab == "Главная", onClick = { choosing = false; tab = "Главная" }, icon = { Icon(Icons.Default.Home, "Домой") }, label = { Text("Домой", fontSize = 9.sp) })
+                    NavigationRailItem(selected = tab == "Активные", onClick = { choosing = false; tab = "Активные" }, icon = { Icon(Icons.Default.Apps, "Активные приложения") }, label = { Text("Активные", fontSize = 9.sp) })
+                    NavigationRailItem(selected = tab == "Приложения", onClick = { choosing = false; tab = "Приложения" }, icon = { Icon(Icons.Default.GridView, "Приложения") }, label = { Text("Приложения", fontSize = 9.sp) })
+                    NavigationRailItem(selected = tab == "Настройки", onClick = { choosing = false; tab = "Настройки" }, icon = { Icon(Icons.Default.Settings, "Настройки") }, label = { Text("Настройки", fontSize = 9.sp) })
+                }
+                Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("DRIVEDECK", color = Accent, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
@@ -307,13 +327,24 @@ private fun DriveDeckHome() {
                             }
                         }
                     }
+                    tab == "Активные" -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Активные приложения", Modifier.weight(1f), fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                            TextButton(onClick = { activeApps = emptyList() }) { Text("Очистить", color = Accent) }
+                        }
+                        if (activeApps.isEmpty()) {
+                            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                Text("Здесь появятся недавно запущенные приложения", color = Muted)
+                            }
+                        } else AppGrid(activeApps, columns.coerceAtMost(4)) { app -> launchApp(app) }
+                    }
                     tab == "Приложения" -> {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("Все приложения", Modifier.weight(1f), fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                             IconButton(onClick = { choosing = true }) { Icon(Icons.Default.Edit, "Избранное", tint = Accent) }
                         }
                         if (loading) LoadingBox() else AppGrid(apps, columns) { app ->
-                            context.packageManager.getLaunchIntentForPackage(app.packageName)?.let(context::startActivity)
+                            launchApp(app)
                         }
                     }
                     else -> {
@@ -369,23 +400,12 @@ private fun DriveDeckHome() {
                             if (loading) LoadingBox() else if (homeApps.isEmpty()) {
                                 Text("Добавь приложения на главный экран", color = Muted)
                             } else AppGrid(homeApps, columns) { app ->
-                                context.packageManager.getLaunchIntentForPackage(app.packageName)?.let(context::startActivity)
+                                launchApp(app)
                             }
                         }
                     }
                 }
 
-                if (!choosing) {
-                    NavigationBar(containerColor = Panel, tonalElevation = 0.dp) {
-                        listOf("Главная", "Приложения", "Настройки").forEach { item ->
-                            NavigationBarItem(selected = tab == item, onClick = { tab = item }, icon = {
-                                Icon(when (item) { "Главная" -> Icons.Default.Home; "Приложения" -> Icons.Default.GridView; else -> Icons.Default.Settings }, item)
-                            }, label = { Text(item, fontSize = 10.sp) },
-                                colors = NavigationBarItemDefaults.colors(selectedIconColor = Accent, selectedTextColor = Accent,
-                                    indicatorColor = Accent.copy(alpha = 0.14f), unselectedIconColor = Muted, unselectedTextColor = Muted))
-                        }
-                    }
-                }
             }
         }
     }
